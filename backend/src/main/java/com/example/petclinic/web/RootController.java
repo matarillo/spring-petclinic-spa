@@ -1,10 +1,7 @@
 package com.example.petclinic.web;
 
 import com.example.petclinic.data.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import org.apache.commons.collections4.IterableUtils;
 
