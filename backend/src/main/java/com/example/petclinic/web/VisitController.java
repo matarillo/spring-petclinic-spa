@@ -3,6 +3,7 @@ package com.example.petclinic.web;
 import com.example.petclinic.data.OwnerRepository;
 import com.example.petclinic.data.Visit;
 import com.example.petclinic.data.VisitRepository;
+import com.example.petclinic.json.CustomConverter;
 import com.example.petclinic.json.VisitDto;
 import jakarta.validation.Valid;
 import org.apache.commons.collections4.IterableUtils;
@@ -15,6 +16,7 @@ public class VisitController {
 
     private final OwnerRepository ownerRepository;
     private final VisitRepository visitRepository;
+    private final CustomConverter converter = new CustomConverter();
 
     public VisitController(OwnerRepository ownerRepository, VisitRepository visitRepository) {
         this.ownerRepository = ownerRepository;
@@ -33,10 +35,9 @@ public class VisitController {
         }
         Visit inserting = new Visit();
         inserting.setPetId(petId);
-        inserting.setVisitDate(newVisit.getVisitDate());
-        inserting.setDescription(newVisit.getDescription());
+        converter.fillFromVisitDto(newVisit, inserting);
         var inserted = this.visitRepository.save(inserting);
-        var result = new VisitDto(inserted.getId(), inserted.getVisitDate(), inserted.getDescription());
+        var result = converter.mapToVisitDto(inserted);
         return ResponseEntity.ok(result);
     }
 }

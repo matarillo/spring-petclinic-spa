@@ -1,18 +1,17 @@
 package com.example.petclinic.web;
 
-import com.example.petclinic.data.*;
-import com.example.petclinic.json.Converter;
+import com.example.petclinic.data.Owner;
+import com.example.petclinic.data.OwnerRepository;
+import com.example.petclinic.data.TypeRepository;
+import com.example.petclinic.json.CustomConverter;
 import com.example.petclinic.json.OwnerDto;
-import com.example.petclinic.json.PetDto;
-import com.example.petclinic.json.VisitDto;
 import jakarta.validation.Valid;
-import org.apache.commons.collections4.IterableUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping("/owners")
@@ -20,6 +19,7 @@ public class OwnerController {
 
     private final OwnerRepository ownerRepository;
     private final TypeRepository typeRepository;
+    private final CustomConverter converter = new CustomConverter();
 
     public OwnerController(OwnerRepository ownerRepository, TypeRepository typeRepository) {
         this.ownerRepository = ownerRepository;
@@ -28,12 +28,13 @@ public class OwnerController {
 
     @GetMapping
     public ResponseEntity<List<OwnerDto>> list(@RequestParam Optional<String> lastName) {
-        var iterable = lastName.isPresent()
+        var owners = lastName.isPresent()
                 ? this.ownerRepository.findAllByLastName(lastName.get())
                 : this.ownerRepository.findAll();
-        var owners = IterableUtils.toList(iterable);
-        var converter = new Converter(this.typeRepository.findAll());
-        var result = owners.stream().map(converter::from).toList();
+        var types = this.typeRepository.findAll();
+        var result = StreamSupport.stream(owners.spliterator(), false)
+                .map(converter.mapToOwnerDto(types))
+                .toList();
         return ResponseEntity.ok(result);
     }
 
@@ -43,10 +44,9 @@ public class OwnerController {
             return ResponseEntity.badRequest().build();
         }
         Owner inserting = new Owner();
-        fromDto(dto, inserting);
+        converter.fillFromOwnerDto(dto, inserting);
         Owner inserted = this.ownerRepository.save(inserting);
-        OwnerDto result = new OwnerDto();
-        toDto(inserted, result);
+        var result = converter.mapToOwnerDto(null).apply(inserted);
         return ResponseEntity.ok(result);
     }
 
@@ -57,8 +57,8 @@ public class OwnerController {
             return ResponseEntity.notFound().build();
         }
         Owner found = optional.get();
-        var converter = new Converter(this.typeRepository.findAll());
-        var result = converter.from(found);
+        var types = this.typeRepository.findAll();
+        var result = converter.mapToOwnerDto(types).apply(found);
         return ResponseEntity.ok(result);
     }
 
@@ -72,27 +72,10 @@ public class OwnerController {
         if (dto.getId() != null && !dto.getId().equals(ownerId)) {
             return ResponseEntity.badRequest().build();
         }
-        fromDto(dto, updating);
+        converter.fillFromOwnerDto(dto, updating);
         var updated = this.ownerRepository.save(updating);
-        var converter = new Converter(this.typeRepository.findAll());
-        var result = converter.from(updating);
+        var types = this.typeRepository.findAll();
+        var result = converter.mapToOwnerDto(types).apply(updated);
         return ResponseEntity.ok(result);
-    }
-
-    private void fromDto(OwnerDto source, Owner destination) {
-        destination.setFirstName(source.getFirstName());
-        destination.setLastName(source.getLastName());
-        destination.setAddress(source.getAddress());
-        destination.setCity(source.getCity());
-        destination.setTelephone(source.getTelephone());
-    }
-
-    private void toDto(Owner source, OwnerDto destination) {
-        destination.setId(source.getId());
-        destination.setFirstName(source.getFirstName());
-        destination.setLastName(source.getLastName());
-        destination.setAddress(source.getAddress());
-        destination.setCity(source.getCity());
-        destination.setTelephone(source.getTelephone());
     }
 }

@@ -1,16 +1,14 @@
 package com.example.petclinic.web;
 
 import com.example.petclinic.data.*;
+import com.example.petclinic.json.CustomConverter;
 import com.example.petclinic.json.PetDto;
-import com.example.petclinic.json.VisitDto;
 import jakarta.validation.Valid;
-import org.apache.commons.collections4.IterableUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 @RestController
 @RequestMapping("owners/{ownerId}/pets")
@@ -19,6 +17,7 @@ public class PetController {
     private final OwnerRepository ownerRepository;
     private final TypeRepository typeRepository;
     private final PetRepository petRepository;
+    private final CustomConverter converter = new CustomConverter();
 
     public PetController(OwnerRepository ownerRepository, TypeRepository typeRepository, PetRepository petRepository) {
         this.ownerRepository = ownerRepository;
@@ -33,17 +32,11 @@ public class PetController {
             return ResponseEntity.notFound().build();
         }
 
-        var iterable = this.typeRepository.findAll();
-        Function<Integer, Type> toType = id -> IterableUtils.find(iterable, t -> t.getId().equals(id));
-
-        Function<Pet, PetDto> toDto = pet -> {
-            var typeName = toType.apply(pet.getTypeId()).getName();
-            var visits = pet.getVisits().stream()
-                    .map(x -> new VisitDto(x.getId(), x.getVisitDate(), x.getDescription()))
-                    .toList();
-            return new PetDto(pet.getId(), pet.getName(), pet.getBirthDate(), typeName, visits);
-        };
-        var result = owner.get().getPets().stream().map(toDto).toList();
+        var types = this.typeRepository.findAll();
+        var pets = owner.get().getPets();
+        var result = pets.stream()
+                .map(converter.mapToPetDto(types))
+                .toList();
         return ResponseEntity.ok(result);
     }
 
@@ -59,14 +52,13 @@ public class PetController {
         if (type.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
+        var types = single(type.get());
 
         Pet inserting = new Pet();
-        inserting.setName(newPet.getName());
-        inserting.setBirthDate(newPet.getBirthDate());
-        inserting.setTypeId(type.get().getId());
+        converter.fillFromPetDto(newPet, inserting, types);
         inserting.setOwnerId(ownerId);
         Pet inserted = this.petRepository.save(inserting);
-        PetDto result = new PetDto(inserted.getId(), inserted.getName(), inserted.getBirthDate(), typeName, new ArrayList<>());
+        PetDto result = converter.mapToPetDto(types).apply(inserted);
         return ResponseEntity.ok(result);
     }
 
@@ -85,29 +77,22 @@ public class PetController {
         }
 
         var typeName = pet.getType();
-        var typeOrNull = this.typeRepository.findByName(typeName);
-        if (typeOrNull.isEmpty()) {
+        var type = this.typeRepository.findByName(typeName);
+        if (type.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        var type = typeOrNull.get();
+        var types = single(type.get());
 
-        // id is unchanged
-        currentPet.setName(pet.getName());
-        currentPet.setBirthDate(pet.getBirthDate());
-        currentPet.setTypeId(type.getId());
-        // ownerId is unchanged
-        // visits are unchanged
+        converter.fillFromPetDto(pet, currentPet, types);
         Pet updated = this.petRepository.save(currentPet);
-
-        PetDto result = new PetDto();
-        result.setId(updated.getId());
-        result.setName(updated.getName());
-        result.setBirthDate(updated.getBirthDate());
-        result.setType(typeName);
-        var visits = currentPet.getVisits().stream()
-                .map(v -> new VisitDto(v.getId(), v.getVisitDate(), v.getDescription()))
-                .toList();
-        result.setVisits(visits);
+        updated.setVisits(currentPet.getVisits());
+        PetDto result = converter.mapToPetDto(types).apply(updated);
         return ResponseEntity.ok(result);
+    }
+
+    private List<Type> single(Type type) {
+        List<Type> list = new ArrayList<>();
+        list.add(type);
+        return list;
     }
 }
