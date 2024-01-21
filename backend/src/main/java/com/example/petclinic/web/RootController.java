@@ -1,12 +1,12 @@
 package com.example.petclinic.web;
 
 import com.example.petclinic.data.*;
-import org.springframework.web.bind.annotation.*;
-
 import org.apache.commons.collections4.IterableUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/")
@@ -16,14 +16,11 @@ public class RootController {
 
     private final VisitRepository visitRepository;
 
-    private final OwnerRepository ownerRepository;
-
     private final PetRepository petRepository;
 
     public RootController(TypeRepository typeRepository, VetRepository vetRepository, SpecialtyRepository specialtyRepository, VisitRepository visitRepository, OwnerRepository ownerRepository, PetRepository petRepository) {
         this.typeRepository = typeRepository;
         this.visitRepository = visitRepository;
-        this.ownerRepository = ownerRepository;
         this.petRepository = petRepository;
     }
 
@@ -35,14 +32,6 @@ public class RootController {
     @GetMapping("/visits")
     public List<Visit> getAllVisits() {
         return IterableUtils.toList(this.visitRepository.findAll());
-    }
-
-    @GetMapping("/owners")
-    public List<Owner> getAllOwnersByLastName(@RequestParam Optional<String> lastName) {
-        var owners = lastName.isPresent()
-                ? this.ownerRepository.findAllByLastName(lastName.get())
-                : this.ownerRepository.findAll();
-        return IterableUtils.toList(owners);
     }
 
     @GetMapping("/pets")
