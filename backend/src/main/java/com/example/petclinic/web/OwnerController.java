@@ -51,7 +51,7 @@ public class OwnerController {
     }
 
     @GetMapping("/{ownerId}")
-    public ResponseEntity<OwnerDto> find(@RequestParam Integer ownerId) {
+    public ResponseEntity<OwnerDto> find(@PathVariable Integer ownerId) {
         var optional = this.ownerRepository.findById(ownerId);
         if (optional.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -63,7 +63,7 @@ public class OwnerController {
     }
 
     @PutMapping("/{ownerId}")
-    public ResponseEntity<OwnerDto> edit(@RequestParam Integer ownerId, @RequestBody @Valid OwnerDto dto) {
+    public ResponseEntity<OwnerDto> edit(@PathVariable Integer ownerId, @RequestBody @Valid OwnerDto dto) {
         var optional = this.ownerRepository.findById(ownerId);
         if (optional.isEmpty()) {
             return ResponseEntity.notFound().build();

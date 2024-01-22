@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import axios from 'axios'
 import type { Owner } from '@/api/types'
+import apiClient from '@/api/apiClient'
 
 const test = async () => {
-  const res = await axios.get<Owner[]>('/api/owners')
-  console.log(res.data)
+  const data = await apiClient.vet.list()
+  console.log(data);
 }
 </script>
 <template>
