@@ -1,23 +1,29 @@
-export type Owner = {
-  id: number
+export type OwnerToAdd = {
   firstName: string
   lastName: string
   address: string
   city: string
   telephone: string
-  pets: Pet[]
+}
+
+export type OwnerToEdit = OwnerToAdd & {
+  id: number
+}
+
+export type Owner = OwnerToEdit & {
+  pets?: Pet[]
 }
 
 export type Pet = {
-  id: number
+  id?: number
   name: string
   birthDate: string
   type: string
-  visits: Visit[]
+  visits?: Visit[]
 }
 
 export type Visit = {
-  id: number
+  id?: number
   visitDate: string
   description: string
 }
