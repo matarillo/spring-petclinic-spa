@@ -78,7 +78,7 @@ type Owner = (typeof owners)[number]
   </v-container>
 </template>
 <style scoped>
-.owners >>> thead th {
+.owners :deep(thead th) {
   font-weight: 700 !important;
 }
 </style>
