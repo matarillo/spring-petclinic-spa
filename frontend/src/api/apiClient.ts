@@ -1,5 +1,15 @@
 import axios from 'axios'
-import type { Owner, OwnerToAdd, OwnerToEdit, Pet, PetToAdd, PetToEdit, Vet, Visit, VisitToAdd } from '@/api/types'
+import type {
+  Owner,
+  OwnerToAdd,
+  OwnerToEdit,
+  Pet,
+  PetToAdd,
+  PetToEdit,
+  Vet,
+  Visit,
+  VisitToAdd
+} from '@/api/types'
 
 const baseUrl = '/api'
 const axiosClient = axios.create()
@@ -26,7 +36,7 @@ const apiClient = {
       const url = `${baseUrl}/owners/${ownerToEdit.id}`
       const response = await axiosClient.put<Owner>(url, ownerToEdit)
       return response.data
-    },
+    }
   },
   pet: {
     async list(ownerId: number) {
@@ -43,14 +53,14 @@ const apiClient = {
       const url = `${baseUrl}/owners/${ownerId}/pets/${petToEdit.id}`
       const response = await axiosClient.put<Pet>(url, petToEdit)
       return response.data
-    },
+    }
   },
   visit: {
     async add(ownerId: number, petId: number, visitToAdd: VisitToAdd) {
       const url = `${baseUrl}/owners/${ownerId}/pets/${petId}/visits`
       const response = await axiosClient.post<Visit>(url, visitToAdd)
       return response.data
-    },
+    }
   },
   vet: {
     async list() {

@@ -1,22 +1,43 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { usePetStore } from '@/stores/petStore'
+import type { Owner } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 const lastName = ref('')
-const lastNameQuery = computed(() => route.query[`lastName`])
-const find = () => {
-  router.push({
+const lastNameQuery = computed(() => {
+  const value = route.query[`lastName`]
+  return Array.isArray(value) ? value.join(',') : value
+})
+
+const { owners, owner } = usePetStore()
+const updateStore = async () => {
+  const value = lastNameQuery.value
+  if (value === void 0) {
+    // no query; initialize
+    owner.clear()
+  } else if (value == null) {
+    // empty query; search all
+    await owner.list()
+  } else {
+    await owner.list(value)
+  }
+}
+const find = async () => {
+  await router.push({
     path: '/owners',
     query: {
       lastName: lastName.value
     }
   })
+  await updateStore()
 }
-const add = () => {
-  router.push('/owners/new')
+const add = async () => {
+  await router.push('/owners/new')
 }
+
 const headers = [
   { title: 'Name', key: 'name' },
   { title: 'Address', key: 'address' },
@@ -24,33 +45,9 @@ const headers = [
   { title: 'Telephone', key: 'telephone' },
   { title: 'Pets', key: 'pets' }
 ]
-const owners = [
-  {
-    id: 4,
-    name: 'Harold Davis',
-    address: '563 Friendly St.',
-    city: 'Windsor',
-    telephone: '6085553198',
-    pets: ['ddd', 'Iggy', 'rr']
-  },
-  {
-    id: 7,
-    name: 'Jeff Black',
-    address: '1450 Oak Blvd.',
-    city: 'Monona',
-    telephone: '6085555387',
-    pets: ['Lucky']
-  },
-  {
-    id: 11,
-    name: 'Anna Belle',
-    address: 'Jonestown',
-    city: '40 Roake Street',
-    telephone: '111',
-    pets: ['Birdie']
-  }
-]
-type Owner = (typeof owners)[number]
+onMounted(async () => {
+  await updateStore()
+})
 </script>
 
 <template>
@@ -68,11 +65,13 @@ type Owner = (typeof owners)[number]
   <v-container v-if="lastNameQuery != null">
     <h2 class="text-h4">Owners</h2>
     <v-data-table class="mt-8 owners" :headers="headers" :items="owners">
-      <template v-slot:[`item.name`]="{ item }">
-        <RouterLink :to="`/owners/${item.id}`">{{ item.name }}</RouterLink>
+      <template v-slot:[`item.name`]="{ item }: { item: Owner }">
+        <RouterLink :to="`/owners/${item.id}`">
+          {{ `${item.firstName} ${item.lastName}` }}
+        </RouterLink>
       </template>
-      <template v-slot:[`item.pets`]="{ item }">
-        {{ (item as Owner).pets.join(' ') }}
+      <template v-slot:[`item.pets`]="{ item }: { item: Owner }">
+        {{ (item.pets || []).map((p) => p.name).join(' ') }}
       </template>
     </v-data-table>
   </v-container>

@@ -34,7 +34,7 @@ public class CustomConverter {
         to.setFirstName(from.getFirstName());
         to.setLastName(from.getLastName());
         to.setAddress(from.getAddress());
-        to.setCity(from.getAddress());
+        to.setCity(from.getCity());
         to.setTelephone(from.getTelephone());
     }
 

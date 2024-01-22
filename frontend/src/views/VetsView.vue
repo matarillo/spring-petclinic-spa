@@ -1,57 +1,24 @@
 <script setup lang="ts">
-const vets = [
-  {
-    id: 1,
-    firstName: 'James',
-    lastName: 'Carter',
-    specialties: []
-  },
-  {
-    id: 3,
-    firstName: 'Linda',
-    lastName: 'Douglas',
-    specialties: [
-      { id: 3, name: 'dentistry' },
-      { id: 2, name: 'surgery' }
-    ]
-  },
-  {
-    id: 6,
-    firstName: 'Sharon',
-    lastName: 'Jenkins',
-    specialties: []
-  },
-  {
-    id: 2,
-    firstName: 'Helen',
-    lastName: 'Leary',
-    specialties: [{ id: 1, name: 'radiology' }]
-  },
-  {
-    id: 4,
-    firstName: 'Rafael',
-    lastName: 'Ortega',
-    specialties: [{ id: 2, name: 'surgery' }]
-  },
-  {
-    id: 5,
-    firstName: 'Henry',
-    lastName: 'Stevens',
-    specialties: [{ id: 1, name: 'radiology' }]
-  }
-]
+import { usePetStore } from '@/stores/petStore'
+import type { Vet } from '@/api/types'
+import { onMounted } from 'vue'
+
+const { vets, vet } = usePetStore()
+
 const headers = [
   { title: 'Name', key: 'name' },
   { title: 'Specialties', key: 'specialties' }
 ]
-type Vet = (typeof vets)[number]
 const formatName = (item: Vet) => {
   return `${item.firstName} ${item.lastName}`
 }
 const formatSpecialities = (item: Vet) => {
-  const names = item.specialties.map((x) => x.name).join(' ')
+  const names = item.specialties.join(' ')
   return names.length === 0 ? 'none' : names
 }
+onMounted(async () => {
+  await vet.list()
+})
 </script>
 
 <template>

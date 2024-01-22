@@ -37,8 +37,7 @@ export type VisitToEdit = VisitToAdd & {
   id: number
 }
 
-export type Visit = VisitToEdit & {
-}
+export type Visit = VisitToEdit & {}
 
 export type Vet = {
   id: number

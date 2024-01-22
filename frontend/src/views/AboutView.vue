@@ -4,7 +4,7 @@ import apiClient from '@/api/apiClient'
 
 const test = async () => {
   const data = await apiClient.vet.list()
-  console.log(data);
+  console.log(data)
 }
 </script>
 <template>
