@@ -25,39 +25,45 @@ const router = createRouter({
       children: [
         {
           path: '',
-          name: 'list',
-          component: OwnerList
+          name: 'owner list',
+          component: OwnerList,
+          props: (route) => ({ lastName: route.query[`lastName`] })
         },
         {
           path: 'new',
-          name: 'add',
+          name: 'add owner',
           component: OwnerAdd
         },
 
         {
           path: ':id',
-          name: 'detail',
-          component: OwnerDetail
+          name: 'owner detail',
+          component: OwnerDetail,
+          props: true
         },
         {
           path: ':id/edit',
-          name: 'edit',
-          component: OwnerEdit
+          name: 'edit owner',
+          component: OwnerEdit,
+          props: true
         },
         {
           path: ':id/pets/new',
           name: 'add pet',
-          component: PetAdd
+          component: PetAdd,
+          props: true
         },
         {
           path: ':id/pets/:petId/edit',
           name: 'edit pet',
-          component: PetEdit
+          component: PetEdit,
+          props: true
         },
         {
           path: ':id/pets/:petId/visits/new',
           name: 'add visit',
-          component: VisitAdd
+          component: VisitAdd,
+          props: true
         }
       ]
     },
@@ -69,6 +75,7 @@ const router = createRouter({
     {
       path: '/oups',
       name: 'about',
+      props: true,
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.

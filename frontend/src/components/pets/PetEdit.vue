@@ -1,33 +1,30 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { usePetStore } from '@/stores/petStore'
-const route = useRoute()
-const router = useRouter()
-const ownerId = computed(() => {
-  const value = route.params[`id`]
-  const strValue = Array.isArray(value) ? value.join(',') : value
-  return Number(strValue)
-})
-const petId = computed(() => {
-  const value = route.params[`petId`]
-  const strValue = Array.isArray(value) ? value.join(',') : value
-  return Number(strValue)
-})
 
+const props = defineProps<{
+  id: string
+  petId: string
+}>()
+const ownerId = Number(props.id)
+const petId = Number(props.petId)
+
+const router = useRouter()
 const { owner, pet } = usePetStore()
-const foundOwner = owner.find(ownerId.value)
-const found = pet.find(ownerId.value, petId.value)
+
+const foundOwner = owner.find(ownerId)
+const foundPet = pet.find(ownerId, petId)
 
 const ownerName = foundOwner == null ? '' : `${foundOwner.firstName} ${foundOwner.lastName}`
 
 const petToEdit = ref(
-  found == null
+  foundPet == null
     ? null
     : {
-        name: found.name,
-        birthDate: new Date(found.birthDate),
-        type: found.type
+        name: foundPet.name,
+        birthDate: new Date(foundPet.birthDate),
+        type: foundPet.type
       }
 )
 const formatDate = (d: Date) =>
@@ -37,10 +34,10 @@ const formattedBirthDate = computed(() => formatDate(petToEdit.value?.birthDate 
 
 const edit = async () => {
   // validation
-  if (ownerId.value == null) {
+  if (isNaN(ownerId)) {
     return
   }
-  if (found == null) {
+  if (foundPet == null) {
     return
   }
   const value = petToEdit.value
@@ -56,8 +53,8 @@ const edit = async () => {
   if (value.type == null || value.type.length === 0) {
     return
   }
-  await pet.edit(ownerId.value, {
-    id: found.id,
+  await pet.edit(ownerId, {
+    id: foundPet.id,
     name: value.name,
     birthDate: formatDate(value.birthDate),
     type: value.type

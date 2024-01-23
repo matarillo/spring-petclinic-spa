@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { usePetStore } from '@/stores/petStore'
-const route = useRoute()
-const router = useRouter()
-const ownerId = computed(() => {
-  const value = route.params[`id`]
-  const strValue = Array.isArray(value) ? value.join(',') : value
-  return Number(strValue)
-})
 
+const props = defineProps<{
+  id: string
+}>()
+const ownerId = Number(props.id)
+
+const router = useRouter()
 const { owner } = usePetStore()
-const found = owner.find(ownerId.value)
+
+const foundOwner = owner.find(ownerId)
 const ownerToEdit = ref(
-  found == null
+  foundOwner == null
     ? null
     : {
-        id: found.id,
-        firstName: found.firstName,
-        lastName: found.lastName,
-        address: found.address,
-        city: found.city,
-        telephone: found.telephone
+        id: foundOwner.id,
+        firstName: foundOwner.firstName,
+        lastName: foundOwner.lastName,
+        address: foundOwner.address,
+        city: foundOwner.city,
+        telephone: foundOwner.telephone
       }
 )
 

@@ -1,55 +1,70 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { usePetStore } from '@/stores/petStore'
-const route = useRoute()
-const router = useRouter()
-const ownerId = computed(() => {
-  const value = route.params[`id`]
-  const strValue = Array.isArray(value) ? value.join(',') : value
-  return Number(strValue)
-})
 
+const props = defineProps<{
+  id: string
+}>()
+const ownerId = Number(props.id)
+
+const router = useRouter()
 const { owner } = usePetStore()
-const found = owner.find(ownerId.value)
+
+const foundOwner = owner.find(ownerId)
 
 const edit = () => {
-  router.push(`/owners/${ownerId.value}/edit`)
+  router.push({
+    // path: `/owners/${ownerId.value}/edit`,
+    name: 'edit owner',
+    params: { id: props.id }
+  })
 }
 const addPet = () => {
-  router.push(`/owners/${ownerId.value}/pets/new`)
+  router.push({
+    // path: `/owners/${ownerId.value}/pets/new`,
+    name: 'add pet',
+    params: { id: props.id }
+  })
 }
 const editPet = (petId: number) => {
-  router.push(`/owners/${ownerId.value}/pets/${petId}/edit`)
+  router.push({
+    // path: `/owners/${ownerId.value}/pets/${petId}/edit`,
+    name: 'edit pet',
+    params: { id: props.id, petId: `${petId}` }
+  })
 }
 const addVisit = (petId: number) => {
-  router.push(`/owners/${ownerId.value}/pets/${petId}/visits/new`)
+  router.push({
+    // path: `/owners/${ownerId.value}/pets/${petId}/visits/new`,
+    name: 'add visit',
+    params: { id: props.id, petId: `${petId}` }
+  })
 }
 </script>
 
 <template>
   <v-container>
     <h2 class="text-h4">Owner Information</h2>
-    <template v-if="found != null">
+    <template v-if="foundOwner != null">
       <v-card class="w-50 mt-8">
         <v-list lines="two">
           <v-list-item>
             <v-list-item-title>Name</v-list-item-title>
             <v-list-item-subtitle>{{
-              `${found.firstName} ${found.lastName}`
+              `${foundOwner.firstName} ${foundOwner.lastName}`
             }}</v-list-item-subtitle>
           </v-list-item>
           <v-list-item>
             <v-list-item-title>Address</v-list-item-title>
-            <v-list-item-subtitle>{{ found.address }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ foundOwner.address }}</v-list-item-subtitle>
           </v-list-item>
           <v-list-item>
             <v-list-item-title>City</v-list-item-title>
-            <v-list-item-subtitle>{{ found.city }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ foundOwner.city }}</v-list-item-subtitle>
           </v-list-item>
           <v-list-item>
             <v-list-item-title>Telephone</v-list-item-title>
-            <v-list-item-subtitle>{{ found.telephone }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ foundOwner.telephone }}</v-list-item-subtitle>
           </v-list-item>
         </v-list>
       </v-card>
@@ -60,7 +75,7 @@ const addVisit = (petId: number) => {
       <h2 class="text-h4 mt-8">Pets and Visits</h2>
       <v-table class="mt-8">
         <tbody>
-          <tr v-for="pet in found.pets ?? []" :key="pet.id">
+          <tr v-for="pet in foundOwner.pets ?? []" :key="pet.id">
             <td>
               <v-card class="my-4">
                 <v-list lines="two">

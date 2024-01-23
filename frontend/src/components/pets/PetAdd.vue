@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { usePetStore } from '@/stores/petStore'
-const route = useRoute()
-const router = useRouter()
-const ownerId = computed(() => {
-  const value = route.params[`id`]
-  const strValue = Array.isArray(value) ? value.join(',') : value
-  return Number(strValue)
-})
 
+const props = defineProps<{
+  id: string
+}>()
+const ownerId = Number(props.id)
+
+const router = useRouter()
 const { owner, pet } = usePetStore()
-const found = owner.find(ownerId.value)
+
+const foundOwner = owner.find(Number(props.id))
 const petToAdd = ref({
-  owner: found == null ? '' : `${found.firstName} ${found.lastName}`,
+  owner: foundOwner == null ? '' : `${foundOwner.firstName} ${foundOwner.lastName}`,
   name: '',
   birthDate: new Date(),
   type: ''
@@ -25,7 +25,7 @@ const formatDate = (d: Date) =>
 const formattedBirthDate = computed(() => formatDate(petToAdd.value.birthDate))
 const add = async () => {
   // validation
-  if (ownerId.value == null) {
+  if (isNaN(ownerId)) {
     return
   }
   const value = petToAdd.value
@@ -38,7 +38,7 @@ const add = async () => {
   if (value.type == null || value.type.length === 0) {
     return
   }
-  await pet.add(ownerId.value, {
+  await pet.add(ownerId, {
     name: value.name,
     birthDate: formatDate(value.birthDate),
     type: value.type

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePetStore } from '@/stores/petStore'
-const router = useRouter()
+
 const ownerToAdd = ref({
   firstName: '',
   lastName: '',
@@ -10,6 +10,8 @@ const ownerToAdd = ref({
   city: '',
   telephone: ''
 })
+
+const router = useRouter()
 const { owner } = usePetStore()
 
 const add = async () => {

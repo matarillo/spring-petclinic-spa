@@ -1,23 +1,21 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { usePetStore } from '@/stores/petStore'
-const route = useRoute()
+
+// props from route
+const props = defineProps<{
+  id: string
+  petId: string
+}>()
+const ownerId = Number(props.id)
+const petId = Number(props.petId)
+
 const router = useRouter()
-const ownerId = computed(() => {
-  const value = route.params[`id`]
-  const strValue = Array.isArray(value) ? value.join(',') : value
-  return Number(strValue)
-})
-const petId = computed(() => {
-  const value = route.params[`petId`]
-  const strValue = Array.isArray(value) ? value.join(',') : value
-  return Number(strValue)
-})
 
 const { owner, pet, visit } = usePetStore()
-const foundOwner = owner.find(ownerId.value)
-const found = pet.find(ownerId.value, petId.value)
+const foundOwner = owner.find(ownerId)
+const foundPet = pet.find(ownerId, petId)
 
 const ownerName = foundOwner == null ? '' : `${foundOwner.firstName} ${foundOwner.lastName}`
 
@@ -33,10 +31,10 @@ const formattedVisitDate = computed(() => formatDate(visitToAdd.value.visitDate)
 
 const add = async () => {
   // validation
-  if (ownerId.value == null) {
+  if (isNaN(ownerId)) {
     return
   }
-  if (found == null) {
+  if (foundPet == null) {
     return
   }
   const value = visitToAdd.value
@@ -46,7 +44,7 @@ const add = async () => {
   if (value.description == null) {
     return
   }
-  visit.add(ownerId.value, found.id, {
+  visit.add(ownerId, foundPet.id, {
     visitDate: formatDate(visitToAdd.value.visitDate),
     description: visitToAdd.value.description
   })
@@ -56,7 +54,7 @@ const add = async () => {
 <template>
   <v-container>
     <h2 class="text-h4">New Visit</h2>
-    <v-card class="w-50 mt-8" v-if="found != null">
+    <v-card class="w-50 mt-8" v-if="foundPet != null">
       <v-list lines="two">
         <v-list-item>
           <v-list-item-title>Owner</v-list-item-title>
@@ -64,15 +62,15 @@ const add = async () => {
         </v-list-item>
         <v-list-item>
           <v-list-item-title>Name</v-list-item-title>
-          <v-list-item-subtitle>{{ found.name }}</v-list-item-subtitle>
+          <v-list-item-subtitle>{{ foundPet.name }}</v-list-item-subtitle>
         </v-list-item>
         <v-list-item>
           <v-list-item-title>Birth Date</v-list-item-title>
-          <v-list-item-subtitle>{{ found.birthDate }}</v-list-item-subtitle>
+          <v-list-item-subtitle>{{ foundPet.birthDate }}</v-list-item-subtitle>
         </v-list-item>
         <v-list-item>
           <v-list-item-title>Type</v-list-item-title>
-          <v-list-item-subtitle>{{ found.type }}</v-list-item-subtitle>
+          <v-list-item-subtitle>{{ foundPet.type }}</v-list-item-subtitle>
         </v-list-item>
       </v-list>
     </v-card>
@@ -92,7 +90,7 @@ const add = async () => {
       <v-btn block color="primary" @click="add">Add Visit</v-btn>
     </div>
     <h3 class="text-h5 mt-8">Previous Visits</h3>
-    <v-table class="w-75" v-if="found != null">
+    <v-table class="w-75" v-if="foundPet != null">
       <thead>
         <tr>
           <th>Visit Date</th>
@@ -100,7 +98,7 @@ const add = async () => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="visit in found.visits || []" :key="visit.id">
+        <tr v-for="visit in foundPet.visits || []" :key="visit.id">
           <td>{{ visit.visitDate }}</td>
           <td>{{ visit.description }}</td>
         </tr>

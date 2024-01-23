@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { Owner } from '@/api/types'
 import apiClient from '@/api/apiClient'
 
 const test = async () => {
-  const data = await apiClient.vet.list()
+  const data = await apiClient.owner.find(1)
   console.log(data)
 }
 </script>
